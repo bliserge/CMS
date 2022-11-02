@@ -1,0 +1,9 @@
+# .ignore
+include/js/
+plugins/
+vendor/
+project/
+assets/
+draft/
+java/
+js/

@@ -1,36 +1,36 @@
 <?php
 session_start();
-if(!$_SESSION["name"]){
-header("Location: login.php");
+if (!$_SESSION["name"]) {
+  header("Location: login.php");
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 
-  <head>
+<head>
 
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
 
-    <title>CMS</title>
+  <title>CMS</title>
 
-    <!-- Bootstrap core CSS-->
-    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap core CSS-->
+  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Custom fonts for this template-->
-    <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+  <!-- Custom fonts for this template-->
+  <link href="vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
 
-    <!-- Page level plugin CSS-->
-    <link href="vendor/datatables/dataTables.bootstrap4.css" rel="stylesheet">
+  <!-- Page level plugin CSS-->
+  <link href="vendor/datatables/dataTables.bootstrap4.css" rel="stylesheet">
 
-    <!-- Custom styles for this template-->
-    <link href="css/sb-admin.css" rel="stylesheet">
-    <link rel="stylesheet" href="plugins/select2/css/select2.min.css">
-    <link rel="stylesheet" href="plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
-    <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
+  <!-- Custom styles for this template-->
+  <link href="css/sb-admin.css" rel="stylesheet">
+  <link rel="stylesheet" href="plugins/select2/css/select2.min.css">
+  <link rel="stylesheet" href="plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css">
+  <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
   <!-- Ionicons -->
   <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
   <!-- daterange picker -->
@@ -51,88 +51,94 @@ header("Location: login.php");
   <!-- Google Font: Source Sans Pro -->
   <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
   <link rel="stylesheet" href="assests/bootstrap/css/bootstrap.min.css">
-	<!-- bootstrap theme-->
-	<link rel="stylesheet" href="assests/bootstrap/css/bootstrap-theme.min.css">
-	<!-- font awesome -->
-	<link rel="stylesheet" href="assests/font-awesome/css/font-awesome.min.css">
+  <!-- bootstrap theme-->
+  <link rel="stylesheet" href="assests/bootstrap/css/bootstrap-theme.min.css">
+  <!-- font awesome -->
+  <link rel="stylesheet" href="assests/font-awesome/css/font-awesome.min.css">
 
   <!-- custom css -->
   <link rel="stylesheet" href="custom/css/custom.css">
 
-	<!-- DataTables -->
+  <!-- DataTables -->
   <link rel="stylesheet" href="assests/plugins/datatables/jquery.dataTables.min.css">
 
   <!-- file input -->
   <link rel="stylesheet" href="assests/plugins/fileinput/css/fileinput.min.css">
 
+  <!-- Bootstrap datatable css -->
+  <link rel="stylesheet" href="assets/css/lib/datatable/dataTables.bootstrap.min.css">
+
+  
+
   <!-- jquery -->
-	<script src="assests/jquery/jquery.min.js"></script>
-  <!-- jquery ui -->  
+  <script src="assests/jquery/jquery.min.js"></script>
+  <!-- jquery ui -->
   <link rel="stylesheet" href="assests/jquery-ui/jquery-ui.min.css">
   <script src="assests/jquery-ui/jquery-ui.min.js"></script>
 
   <!-- bootstrap js -->
-	<script src="assests/bootstrap/js/bootstrap.min.js"></script>
+  <script src="assests/bootstrap/js/bootstrap.min.js"></script>
 
 
-  
+
 
 </head>
 
-  <body id="page-top">
+<body id="page-top">
 
-    <nav class="navbar navbar-expand navbar-dark bg-dark static-top">
+  <nav class="navbar navbar-expand navbar-dark bg-dark static-top">
 
-      <b class="navbar-brand mr-1">CMS</b>
+    <b class="navbar-brand mr-1">CMS</b>
 
-      <button class="btn btn-link btn-sm text-white order-1 order-sm-0" id="sidebarToggle" href="#">
-        <i class="fas fa-bars"></i>
-      </button>
-       <!-- Navbar Search -->
-      <form class="d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0">
-        <div class="input-group" style="color: green">
+    <button class="btn btn-link btn-sm text-white order-1 order-sm-0" id="sidebarToggle" href="#">
+      <i class="fas fa-bars"></i>
+    </button>
+    <!-- Navbar Search -->
+    <form class="d-none d-md-inline-block form-inline ml-auto mr-0 mr-md-3 my-2 my-md-0">
+      <div class="input-group" style="color: green">
+        <?php
+        $Today = date('d:m:y');
+        $new = date('l, F d, Y', strtotime($Today));
+        echo $new;
+        ?>
+
+      </div>
+    </form>
+    <!-- Navbar -->
+    <ul class="navbar-nav ml-auto ml-md-0">
+
+      <li class="nav-item dropdown no-arrow">
+        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Rwanda,
           <?php
-                        $Today = date('d:m:y');
-                        $new = date('l, F d, Y', strtotime($Today));
-                        echo $new;
-                        ?>
-                       
+          if (!isset($_SESSION['name'])) {
+            # code...
+            echo "";
+          } else {
+            echo "" . $_SESSION['name'];
+          }
+          ?>
+          <i class="fas fa-user-circle fa-fw"></i>
+        </a>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+          <a class="dropdown-item" href="#"><i class="fas fa-user-circle fa-fw"></i> <?php
+                                                                                      if (!isset($_SESSION['name'])) {
+                                                                                        # code...
+                                                                                        echo "";
+                                                                                      } else {
+                                                                                        echo "" . $_SESSION['name'];
+                                                                                      }
+                                                                                      ?></a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item fas fa-sign-out-alt" href="#" data-toggle="modal" data-target="#logoutModal">Logout</a>
         </div>
-      </form>
-        <!-- Navbar -->
-      <ul class="navbar-nav ml-auto ml-md-0">
-       
-        <li class="nav-item dropdown no-arrow">
-          <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Rwanda,
-            <?php
-            if (!isset($_SESSION['name'])) {
-               # code...
-              echo "";
-             }else{
-              echo "".$_SESSION['name'];
-             }
-             ?>
-            <i class="fas fa-user-circle fa-fw"></i>
-          </a>
-          <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-            <a class="dropdown-item" href="#"><i class="fas fa-user-circle fa-fw"></i> <?php
-             if (!isset($_SESSION['name'])) {
-               # code...
-              echo "";
-             }else{
-              echo "".$_SESSION['name'];
-             }
-             ?></a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item fas fa-sign-out-alt" href="#" data-toggle="modal" data-target="#logoutModal">Logout</a>
-          </div>
-        </li>
-      </ul>
+      </li>
+    </ul>
 
-    </nav>
+  </nav>
 
-    <div id="wrapper">
+  <div id="wrapper">
 
 
 </body>
+
 </html>

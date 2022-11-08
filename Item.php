@@ -8,7 +8,14 @@ include('user/include/sidebar2.php')
 <div id="content-wrapper">
 
   <div class="container-fluid">
-    <h2>List of item(s)<a href="#" data-toggle="modal" data-target="#AddEmployee" class="btn btn-sm btn-info">Add New</a></h2>
+    <div class="row">
+      <div class="col col-10">
+        <h2>Stock Item List</h2>
+      </div>
+      <div class="col">
+        <a href="#" data-toggle="modal" data-target="#AddItem" class="btn btn-md btn-success">Add New</a>
+      </div>
+    </div>
     <div class="card-body">
       <div class="table-responsive">
         <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
@@ -17,6 +24,7 @@ include('user/include/sidebar2.php')
 
               <th>Item Name</th>
               <th>Quantity</th>
+              <th>Measure</th>
               <th>cost</th>
               <th>total</th>
               <th>Date</th>
@@ -26,7 +34,7 @@ include('user/include/sidebar2.php')
 
           <?php
 
-          $query = "SELECT * FROM item";
+          $query = "SELECT i.*, m.`name` as measure FROM item i JOIN measure m ON m.`m_id` = i.`measure_id`";
           $result = mysqli_query($db, $query) or die(mysqli_error($db));
 
           while ($row = mysqli_fetch_assoc($result)) {
@@ -34,6 +42,7 @@ include('user/include/sidebar2.php')
             echo '<tr>';
             echo '<td>' . $row['item_name'] . '</td>';
             echo '<td>' . $row['quantity'] . '</td>';
+            echo '<td>' . $row['measure'] . '</td>';
             echo '<td>' . $row['cost'] . '</td>';
             echo '<td>' . $row['total'] . '</td>';
             echo '<td>' . $row['date'] . '</td>';
@@ -46,42 +55,44 @@ include('user/include/sidebar2.php')
                 <!-- Modal content-->
                 <div class="modal-content" style="width: 130%">
                   <div class="modal-header">
-                    <h3>Modify Employee</h3>
+                    <h3>Modify Item</h3>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                   </div>
                   <div class="modal-body">
 
 
                     <form method="POST" action="#">
-                      <div class="form-group">
+                    <div class="form-group">
                         <div class="form-label-group">
-                          <input type="text" id="inputName1" class="form-control" placeholder="Name" name="name" value="<?php echo $row['item_name']; ?>" autofocus="autofocus" required>
-                          <input type="hidden" id="inputName1" class="form-control" name="id" value="<?php echo $row['item_id']; ?>" autofocus="autofocus" required>
+                          <input type="text" id="inputName1" class="form-control" placeholder="Name" name="name" value="<?= $row['item_name']; ?>" autofocus="autofocus" required>
+                          <input type="hidden" id="inputName1" class="form-control" name="id" value="<?= $row['item_id']; ?>" autofocus="autofocus" required>
                           <label for="inputName1">Name</label>
                         </div>
                       </div>
                       <div class="form-group">
                         <div class="form-label-group">
-                          <input type="number" id="inputAge1" class="form-control" placeholder="Age" name="quantity" value="<?php echo $row['quantity']; ?>" required>
-                          <label for="inputAge1">Quantity</label>
-                        </div>
-                      </div>
-                      <div class="form-group">
-                        <div class="form-label-group">
-                          <input type="text" id="inputAddress1" class="form-control" placeholder="Address" value="<?php echo $row['cost']; ?>" name="cost" required>
+                          <input type="text" id="inputAddress1" class="form-control" placeholder="Address" value="<?= $row['cost']; ?>" name="cost" required>
                           <label for="inputAddress1">Cost</label>
                         </div>
                       </div>
+
                       <div class="form-group">
                         <div class="form-label-group">
-                          <input type="text" id="inputContact1" class="form-control" placeholder="Contact Number" value="<?php echo $row['total']; ?>" name="total" required>
-                          <label for="inputContact1">Total</label>
+
+                          <p>Measure</p>
+
+                          <select style="margin-left:px;" name="measure" class="form-control">
+                            <option>-----Select Any Item--- </option>
+                            <?php
+
+                            $results = mysqli_query($db, "SELECT * FROM measure");
+                            while ($rows = mysqli_fetch_array($results)) { ?>
+                              <option value="<?= $rows['m_id']; ?>"><?= $rows['name']; ?> </option>
+                            <?php } ?>
+                          </select>
                         </div>
                       </div>
-
-
-
-
+                      
                       <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">
                           Close
@@ -100,17 +111,14 @@ include('user/include/sidebar2.php')
             if (isset($_POST['update'])) {
               $id = $_POST['id'];
               $name = $_POST['name'];
-              $qty = $_POST['quantity'];
               $cs = $_POST['cost'];
-              $am = $_POST['total'];
-              $dt = $_POST['date'];
-
+              $msr = $_POST['measure'];
 
               date_default_timezone_set("Asia/Manila");
               $date1 = date("Y-m-d H:i:s");
 
               $remarks = "Item $name was updated";
-              $query = "UPDATE `item` SET `item_name`='$name',`quantity`='$qty',`cost`='$cs',`total`='$am',`date`='$dt' WHERE `item_id`='$id'";
+              $query = "UPDATE `item` SET `item_name`='$name',`cost`='$cs', `measure_id`='$msr' WHERE `item_id`='$id'";
               mysqli_query($db, $query) or die(mysqli_error($db));
               mysqli_query($db, "INSERT INTO logs(action,date_time) VALUES('$remarks','$date1')") or die(mysqli_error($db));
 
@@ -127,10 +135,11 @@ include('user/include/sidebar2.php')
 
           ?>
 
+
         </table>
       </div>
     </div>
-    <div id="AddEmployee" class="modal fade" role="dialog">
+    <div id="AddItem" class="modal fade" role="dialog">
       <div class="modal-dialog">
 
         <!-- Modal content-->
@@ -141,7 +150,6 @@ include('user/include/sidebar2.php')
           </div>
           <div class="modal-body">
 
-
             <form method="POST" action="#">
               <div class="form-group">
                 <div class="form-label-group">
@@ -151,26 +159,27 @@ include('user/include/sidebar2.php')
               </div>
               <div class="form-group">
                 <div class="form-label-group">
-                  <input type="number" id="inputAge" class="form-control" placeholder="Age" name="quantity" required>
-                  <label for="inputAge">Quantity</label>
+
+                  <p>Measure</p>
+
+                  <select style="margin-left:px;" name="measure" class="form-control">
+                    <option>-----Select Any Item--- </option>
+                    <?php
+
+                    $query = "SELECT * FROM measure";
+                    $result = mysqli_query($db, $query) or die(mysqli_error($db));
+                    while ($row = mysqli_fetch_assoc($result)) { ?>
+                      <option value="<?= $row['m_id']; ?>"><?= $row['name']; ?> </option>
+                    <?php } ?>
+                  </select>
                 </div>
               </div>
               <div class="form-group">
                 <div class="form-label-group">
                   <input type="text" id="inputAddress" class="form-control" placeholder="Address" name="cost" required>
-                  <label for="inputAddress">Cost/Unit</label>
+                  <label for="inputAddress">Cost/Unit price</label>
                 </div>
               </div>
-              <div class="form-group">
-                <div class="form-label-group">
-                  <input type="text" id="inputContact" class="form-control" placeholder="Contact Number" name="total" required>
-                  <label for="inputContact">Total</label>
-                </div>
-              </div>
-
-
-
-
               <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">
                   Close
@@ -185,48 +194,42 @@ include('user/include/sidebar2.php')
       </div>
     </div>
     <?php
-    if (isset($_POST['submit'])) {
-      $name = $_POST['name'];
-      $qty = $_POST['quantity'];
-      $cs = $_POST['cost'];
-      $am = $_POST['total'];
+      if (isset($_POST['submit'])) {
+        $name = $_POST['name'];
+        $cs = $_POST['cost'];
+        $msr = $_POST['measure'];
 
 
-      date_default_timezone_set("Asia/Manila");
-      $date1 = date("Y-m-d H:i:s");
+        date_default_timezone_set("Asia/Manila");
+        $date1 = date("Y-m-d H:i:s");
 
-      $sql = "SELECT* FROM item WHERE item_name=' $name'AND quantity='$qty' AND cost='$cs'";
-      $res = mysqli_query($db, $sql);
-      $row = mysqli_num_rows($res);
-      if ($row > 0) {
+        $sql = "SELECT* FROM item WHERE item_name='$name' AND cost='$cs'";
+        $res = mysqli_query($db, $sql);
+        $row = mysqli_num_rows($res);
+        if ($row > 0) {
 
-    ?>
-        <script type="text/javascript">
-          window.alert('Data Already inserted');
-        </script>
+        ?>
+          <script type="text/javascript">
+            window.alert('Data Already inserted');
+          </script>
+        <?php
+        die();
+        } else {
+          $remarks = "Item $name was Added";
+          $query = "INSERT INTO item(item_name,measure_id,quantity,cost,total)
+                  VALUES ('$name','$msr',0,'$cs','0')";
+          mysqli_query($db, $query) or die(mysqli_error($db));
+          mysqli_query($db, "INSERT INTO logs(action,date_time) VALUES('$remarks','$date1')") or die(mysqli_error($db));
 
+        ?>
+          <script type="text/javascript">
+            alert("Item Added Successfully!.");
+            window.location = "Item.php";
+          </script>
+        <?php
 
-      <?php
-
-      } else {
-
-
-
-        $remarks = "Item $name was Added";
-        $query = "INSERT INTO item(item_name,quantity,cost,total)
-                VALUES ('" . $name . "','" . $qty . "','" . $cs . "','" . $am . "')";
-        mysqli_query($db, $query) or die(mysqli_error($db));
-        mysqli_query($db, "INSERT INTO logs(action,date_time) VALUES('$remarks','$date1')") or die(mysqli_error($db));
-
-      ?>
-        <script type="text/javascript">
-          alert("Item Added Successfully!.");
-          window.location = "Item.php";
-        </script>
-    <?php
-
+        }
       }
-    }
 
     include('include/scripts.php');
     include('include/footer.php');

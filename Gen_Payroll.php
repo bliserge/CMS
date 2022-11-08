@@ -1,130 +1,127 @@
-<?php include('include/connect.php'); 
-      include('include/header.php'); 
-      include('include/sidebar1.php'); 
+<?php
+
+use LDAP\Result;
+
+include('include/connect.php');
+include('include/header.php');
+include('user/include/sidebar2.php')
 ?>
-		<div class="container-fluid " >
-			<div class="col-lg-12">
-				
-				<br />
-				<br />
-				<div class="card">
-					<div class="card-header">
-						<span><b>Payroll List</b></span>
-						<button class="btn btn-primary btn-sm btn-block col-md-3 float-right" type="button" id="new_payroll_btn"><span class="fa fa-plus"></span> Add Payroll</button>
-					</div>
-					<div class="card-body">
-						<table id="table" class="table table-bordered table-striped">
-							<thead>
-								<tr>
-									<th>Ref No</th>
-									<th>Date From</th>
-									<th>Date To</th>
-									<th>Status</th>
-									<th>Action</th>
-								</tr>
-							</thead>
-							<tbody>
-								<?php
-									
-									$payroll=$db->query("SELECT * FROM payroll order by date(date_from) desc") or die(mysqli_error());
-									while($row=$payroll->fetch_array()){
-								?>
-								<tr>
-									<td><?php echo $row['ref_no']?></td>
-									<td><?php echo date("M d, Y",strtotime($row['date_from'])) ?></td>
-									<td><?php echo date("M d, Y",strtotime($row['date_to'])) ?></td>
-									<?php if($row['status'] == 0): ?>
-									<td class="text-center"><span class="badge badge-primary">New</span></td>
-									<?php else: ?>
-									<td class="text-center"><span class="badge badge-success">Calculated</span></td>
-									<?php endif ?>
-									<td>
-										<center>
-									<?php if($row['status'] == 0): ?>
-										 <button class="btn btn-sm btn-outline-primary calculate_payroll" data-id="<?php echo $row['id']?>" type="button">Calculate</button>
-									<?php else: ?>
-										 <button class="btn btn-sm btn-outline-primary view_payroll" data-id="<?php echo $row['id']?>" type="button"><i class="fa fa-eye"></i></button>
-									<?php endif ?>
 
-										<button class="btn btn-sm btn-outline-primary edit_payroll" data-id="<?php echo $row['id']?>" type="button"><i class="fa fa-edit"></i></button>
-										<button class="btn btn-sm btn-outline-danger remove_payroll" data-id="<?php echo $row['id']?>" type="button"><i class="fa fa-trash"></i></button>
-										</center>
-									</td>
-								</tr>
-								<?php
-									}
-								?>
-							</tbody>
-						</table>
-					</div>
-				</div>
-			</div>
-		</div>
-			
-		
-		
-	<script type="text/javascript">
-		$(document).ready(function(){
-			$('#table').DataTable();
-		});
-	</script>
-	<script type="text/javascript">
-		$(document).ready(function(){
+<style>
+  .actionIn {
+    border: 1px solid green !important;
+    padding: 5px 20px 5px 20px !important;
+    border-radius: 5px !important;
+    min-width: 20px !important;
+  }
 
-			
+  .actionOut {
+    border: 1px solid red !important;
+    padding: 5px 20px 5px 20px !important;
+    border-radius: 5px !important;
+    min-width: 20px !important;
+  }
+</style>
 
-			
-			$('.edit_payroll').click(function(){
-				var $id=$(this).attr('data-id');
-				uni_modal("Edit Employee","manage_payroll.php?id="+$id)
-				
-			});
-			$('.view_payroll').click(function(){
-				var $id=$(this).attr('data-id');
-				location.href = "index.php?page=payroll_items&id="+$id;
-				
-			});
-			$('#new_payroll_btn').click(function(){
-				uni_modal("New Payroll","manage_payroll.php")
-			})
-			$('.remove_payroll').click(function(){
-				_conf("Are you sure to delete this payroll?","remove_payroll",[$(this).attr('data-id')])
-			})
-			$('.calculate_payroll').click(function(){
-				start_load()
-				$.ajax({
-					url:'ajax.php?action=calculate_payroll',
-					method:"POST",
-					data:{id:$(this).attr('data-id')},
-					error:err=>console.log(err),
-					success:function(resp){
-							if(resp == 1){
-								alert_toast("Payroll successfully computed","success");
-									setTimeout(function(){
-									location.reload();
+<!-- DataTables Example -->
+<!-- DataTables Example -->
+<div id="content-wrapper">
 
-								},1000)
-							}
-						}
-				})
-			})
-		});
-		function remove_payroll(id){
-			start_load()
-			$.ajax({
-				url:'ajax.php?action=delete_payroll',
-				method:"POST",
-				data:{id:id},
-				error:err=>console.log(err),
-				success:function(resp){
-						if(resp == 1){
-							alert_toast("Employee's data successfully deleted","success");
-								setTimeout(function(){
-								location.reload();
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col col-8">
+        <h2>Payroll List</h2>
+      </div>
+      <div class="col">
+        <div class="row">
+          <a href="Payroll_history.php" class="btn btn-success">Payroll History</a>
+          <form action="" method="post">
+            <input type="submit" name="pay" class="btn btn-danger" style="margin-left: 5px;" value="Dispatch">
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+          <thead>
+            <tr>
+              <th>S/N</th>
+              <th>Employee Name</th>
+              <th>Phone Number</th>
+              <th>Amount</th>
+              <th>Date</th>
+              <th>TimeIn</th>
+              <th>TimeOut</th>
+              <!-- <th>Action</th> -->
+            </tr>
+          </thead>
+          <tbody>
+            <?php
+            $today = date('Y-m-d');
+            $query = "SELECT e.*, att.`logdate` as `date`, att.`timeIn`, att.`timeOut`,act.`title` as activity, act.`price` as amount, att.`att_id` FROM employees e 
+              JOIN attendance att ON att.`emp_id` = e.`emp_id`
+            JOIN activities act ON act.`id` = e.`position`
+            WHERE att.`timeIn` IS NOT NULL AND att.`timeOut` IS NOT NULL AND `status` = 1 AND logdate ='$today'";
+            $result = mysqli_query($db, $query) or die(mysqli_error($db));
+            $a = 1;
+            $totalAmount = 0;
+            if ($result->num_rows == 0) {
+              echo "<tr><td colspan='8'><center>No data Found</center>";
+            } else {
+              while ($row = mysqli_fetch_assoc($result)) {
+                $totalAmount += $row['amount'];
+                echo '<tr>';
+                echo '<td>' . $a++ . '</td>';
+                echo '<td>' . $row['name'] . '</td>';
+                echo '<td>' . $row['contact_number'] . '</td>';
+                echo '<td>' . $row['amount'] . '</td>';
+                echo '<td>' . $row['date'] . '</td>';
+                echo '<td>' . $row['timeIn'] . '</td>';
+                echo '<td>' . $row['timeOut'] . '</td>';
+                // echo '<td></td>';
+              }
+            }
+            if (isset($_POST["pay"])) {
+              $query2 = "SELECT e.*, att.`logdate` as `date`, att.`timeIn`, att.`timeOut`,act.`title` as activity, act.`price` as amount, att.`att_id` FROM employees e 
+              JOIN attendance att ON att.`emp_id` = e.`emp_id`
+              JOIN activities act ON act.`id` = e.`position`
+              WHERE att.`timeIn` IS NOT NULL AND att.`timeOut` IS NOT NULL AND `status` = 1 AND logdate ='$today'";
+              $result2 = mysqli_query($db, $query2) or die(mysqli_error($db));
+              if ($result->num_rows == 0) { ?>
+                <script type="text/javascript">
+                  alert("Payroll has no data! Contact system admin if you think this is error");
+                </script>
+              <?php } else {
+                $payrollRes = mysqli_query($db, "INSERT INTO payroll(amount,`status`,`date_created`) VALUES ('$totalAmount',0,'" . date('Y-m-d h:i:s') . "')") or die(mysqli_error($db));
+                $payrollId = mysqli_query($db, "SELECT MAX(id) as id FROM payroll") or die(mysqli_error($db));
+                $id = mysqli_fetch_assoc($payrollId);
+                while ($rows = mysqli_fetch_assoc($result2)) {
+                  $emp_id = $rows['emp_id'];
+                  $att_id = $rows['att_id'];
+                  $amout = $rows['amount'];
+                  $payId = $id['id'];
+                  $res = mysqli_query($db, "INSERT INTO `payroll_item`(`payroll_id`, `emp_id`, `att_id`, `salary`, `Date_created`) VALUES ('$payId','$emp_id','$att_id','$amout','" . date('Y-m-d h:i:s') . "')") or die(mysqli_error($db));
+                  if ($res) {
+                    $res = mysqli_query($db, "UPDATE `attendance` SET `status` = 2 WHERE att_id = $att_id") or die(mysqli_error($db));
+                  }
+                }
+              ?>
+                <script type="text/javascript">
+                  window.location.reload()
+                </script>
+            <?php
+              }
+            } ?>
 
-							},1000)
-						}
-					}
-			})
-		}
-	</script>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<?php
+include('include/scripts.php');
+include('include/footer.php');
+
+?>
